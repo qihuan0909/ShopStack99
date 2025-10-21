@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using Duckov.Modding;
 using Duckov.Economy;
 using UnityEngine;
 using ReplaceThisWithYourModNameSpace;

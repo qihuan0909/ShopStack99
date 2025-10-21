@@ -9,7 +9,7 @@ namespace ShopStack99
 {
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
-        private static readonly bool ShowLog = false;
+        private static readonly bool ShowLog = true;
         private bool updateReady = false;
         private bool ModConfigReday = false;
         private object harmonyInstance;

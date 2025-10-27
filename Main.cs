@@ -8,7 +8,7 @@ namespace ShopStack99
 {
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
-        private static readonly bool ShowLog = true;
+        private static bool ShowLog = false;
         private bool updateReady = false;
         private bool ModConfigReday = false;
         private bool waitingForKey = false;
@@ -269,9 +269,11 @@ namespace ShopStack99
         {
             if (!showUI) return;
 
-            GUI.BeginGroup(new Rect(20, 20, 260, 300), "[99ShopStack 控制面板]", GUI.skin.window);
+            GUI.BeginGroup(new Rect(20, 20, 280, 360), "[99ShopStack 控制面板]", GUI.skin.window);
 
-            if (GUI.Button(new Rect(10, 25, 230, 30), patched ? "重新启动" : "启用补丁"))
+            ShowLog = GUI.Toggle(new Rect(10, 25, 230, 25), ShowLog, "启用日志输出");
+
+            if (GUI.Button(new Rect(10, 55, 230, 30), patched ? "重新启动" : "启用补丁"))
             {
                 if (patched)
                     TryUnpatch();
@@ -279,13 +281,13 @@ namespace ShopStack99
                     TryPatch();
             }
 
-            if (GUI.Button(new Rect(10, 70, 230, 30), "强制刷新所有商店"))
+            if (GUI.Button(new Rect(10, 100, 230, 30), "强制刷新所有商店"))
             {
                 ForceRefreshAllShops();
             }
 
-            GUI.Label(new Rect(10, 120, 230, 25), $"当前热键: {keyCode}");
-            if (GUI.Button(new Rect(10, 150, 230, 30), "修改热键"))
+            GUI.Label(new Rect(10, 145, 230, 25), $"当前热键: {keyCode}");
+            if (GUI.Button(new Rect(10, 175, 230, 30), "修改热键"))
             {
                 waitingForKey = true;
                 Log("[99ShopStack] 请按下要绑定的新键...");
@@ -293,15 +295,14 @@ namespace ShopStack99
 
             if (waitingForKey)
             {
-                GUI.Label(new Rect(10, 190, 230, 25), "请按任意键以绑定...");
+                GUI.Label(new Rect(10, 215, 230, 25), "请按任意键以绑定...");
                 Event e = Event.current;
                 if (e.isKey)
                 {
                     keyCode = e.keyCode;
                     waitingForKey = false;
                     Log($"[99ShopStack] 新热键绑定为: {keyCode}");
-
-                    SaveConfig(); 
+                    SaveConfig();
                 }
             }
 
@@ -316,6 +317,7 @@ namespace ShopStack99
 
             foreach (var e in __instance.entries)
             {
+                e.Show = true;
                 e.CurrentStock = amount;
             }
 

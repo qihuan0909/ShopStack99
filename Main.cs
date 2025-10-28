@@ -9,6 +9,7 @@ namespace ShopStack99
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
         private static bool ShowLog = false;
+        private static bool showAllItems = false;
         private bool updateReady = false;
         private bool ModConfigReday = false;
         private bool waitingForKey = false;
@@ -97,6 +98,14 @@ namespace ShopStack99
                             else
                                 keyCode = KeyCode.Home;
                         }
+                        else if (line.StartsWith("ShowLog=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bool.TryParse(line.Substring("ShowLog=".Length).Trim(), out ShowLog);
+                        }
+                        else if (line.StartsWith("ShowAllItems=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            bool.TryParse(line.Substring("ShowAllItems=".Length).Trim(), out showAllItems);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -118,9 +127,12 @@ namespace ShopStack99
         {
             try
             {
-                string content = $"# ShopStack99 Configuration\nToggleKey={keyCode}\n";
+                string content = $"# ShopStack99 Configuration\n" +
+                                 $"ToggleKey={keyCode}\n" +
+                                 $"ShowLog={ShowLog}\n" +
+                                 $"ShowAllItems={showAllItems}\n";
                 System.IO.File.WriteAllText(configPath, content);
-                Log($"[99ShopStack] 已保存 Config.ini：{keyCode}");
+                Log($"[99ShopStack] 已保存 Config.ini：{keyCode}, ShowLog={ShowLog}, ShowAllItems={showAllItems}");
             }
             catch (Exception ex)
             {
@@ -239,7 +251,6 @@ namespace ShopStack99
             {
                 restockAmount = ModConfigAPI.SafeLoad("ShopStack99", "RestockAmount", 99);
                 Log($"[99ShopStack] 补货数量更新为 {restockAmount}");
-
                 ForceRefreshAllShops();
             }
         }
@@ -269,11 +280,12 @@ namespace ShopStack99
         {
             if (!showUI) return;
 
-            GUI.BeginGroup(new Rect(20, 20, 280, 360), "[99ShopStack 控制面板]", GUI.skin.window);
+            GUI.BeginGroup(new Rect(20, 20, 280, 380), "[99ShopStack 控制面板]", GUI.skin.window);
 
             ShowLog = GUI.Toggle(new Rect(10, 25, 230, 25), ShowLog, "启用日志输出");
+            showAllItems = GUI.Toggle(new Rect(10, 55, 230, 25), showAllItems, "显示所有商店物品（仅对部分商店有效）");
 
-            if (GUI.Button(new Rect(10, 55, 230, 30), patched ? "重新启动" : "启用补丁"))
+            if (GUI.Button(new Rect(10, 95, 230, 30), patched ? "重新启动" : "启用补丁"))
             {
                 if (patched)
                     TryUnpatch();
@@ -281,13 +293,13 @@ namespace ShopStack99
                     TryPatch();
             }
 
-            if (GUI.Button(new Rect(10, 100, 230, 30), "强制刷新所有商店"))
+            if (GUI.Button(new Rect(10, 135, 230, 30), "强制刷新所有商店"))
             {
                 ForceRefreshAllShops();
             }
 
-            GUI.Label(new Rect(10, 145, 230, 25), $"当前热键: {keyCode}");
-            if (GUI.Button(new Rect(10, 175, 230, 30), "修改热键"))
+            GUI.Label(new Rect(10, 175, 230, 25), $"当前热键: {keyCode}");
+            if (GUI.Button(new Rect(10, 205, 230, 30), "修改热键"))
             {
                 waitingForKey = true;
                 Log("[99ShopStack] 请按下要绑定的新键...");
@@ -295,7 +307,7 @@ namespace ShopStack99
 
             if (waitingForKey)
             {
-                GUI.Label(new Rect(10, 215, 230, 25), "请按任意键以绑定...");
+                GUI.Label(new Rect(10, 245, 230, 25), "请按任意键以绑定...");
                 Event e = Event.current;
                 if (e.isKey)
                 {
@@ -304,6 +316,11 @@ namespace ShopStack99
                     Log($"[99ShopStack] 新热键绑定为: {keyCode}");
                     SaveConfig();
                 }
+            }
+
+            if (GUI.Button(new Rect(10, 285, 230, 30), "保存配置"))
+            {
+                SaveConfig();
             }
 
             GUI.EndGroup();
@@ -317,11 +334,14 @@ namespace ShopStack99
 
             foreach (var e in __instance.entries)
             {
-                e.Show = true;
+                if (showAllItems)
+                {
+                    e.Show = showAllItems;
+                }
                 e.CurrentStock = amount;
             }
 
-            Log($"[99ShopStack] 商店 {__instance.MerchantID} 已补货至 99 件");
+            Log($"[99ShopStack] 商店 {__instance.MerchantID} 已补货至 {amount} 件 (显示所有物品: {showAllItems})");
         }
     }
 }

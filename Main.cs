@@ -25,6 +25,21 @@ namespace ShopMasterExtreme
         private static bool showUI = false;
         private static int restockAmount = 99;
 
+        private static readonly System.Collections.Generic.SortedDictionary<string, object> langMenuOptions =
+        new System.Collections.Generic.SortedDictionary<string, object>
+        {
+            { "0. Automatic / 自动判断", "Auto" },
+            { "1. Simplified Chinese / 简体中文", "Chinese" },
+            { "2. English", "English" },
+            { "3. Japanese / 日本語", "Japanese" },
+            { "4. Korean / 한국어", "Korean" },
+            { "5. German / Deutsch", "German" },
+            { "6. French / Français", "French" },
+            { "7. Russian / Русский", "Russian" },
+            { "8. Spanish / Español", "Spanish" },
+            { "9. Portuguese / Português", "Portuguese" }
+        };
+
         private void Update()
         {
             TryPatch();
@@ -33,7 +48,8 @@ namespace ShopMasterExtreme
             if (Input.GetKeyDown(keyCode))
             {
                 showUI = !showUI;
-                Loger.Log($"[ShopMasterExtreme] 控制面板 {(showUI ? "打开" : "关闭")}");
+                string status = showUI ? "On" : "Off";
+                Loger.Log(string.Format(Localization.Lang["Log_PanelStatus"], status));
             }
         }
 
@@ -42,13 +58,14 @@ namespace ShopMasterExtreme
             if (ModConfigAPI.IsAvailable())
             {
                 ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(OnOptionChanged);
-                Loger.Log("[ShopMasterExtreme] 已移除 ModConfig 事件委托");
+                Loger.Log(Localization.Lang["Log_ConfigRemoved"]);
 
                 ModConfigAPI.SafeSave("ShopMasterExtreme", "RestockAmount", restockAmount);
-                Loger.Log($"[ShopMasterExtreme] 已保存配置：RestockAmount = {restockAmount}");
+                Loger.Log(string.Format(Localization.Lang["Log_ConfigSaved"], restockAmount));
             }
 
             TryUnpatch();
+            Localization.TryUnloadLocallization();
 
             updateReady = false;
             ModConfigReday = false;
@@ -58,6 +75,8 @@ namespace ShopMasterExtreme
 
         private void Start()
         {
+            Localization.TryLoadLocalization();
+
             string dllDir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             configPath = System.IO.Path.Combine(dllDir, "Config.ini");
 
@@ -88,7 +107,7 @@ namespace ShopMasterExtreme
                 }
                 catch (Exception ex)
                 {
-                    Loger.LogError($"[ShopMasterExtreme] 读取 Config.ini 出错: {ex}");
+                    Loger.LogError(string.Format(Localization.Lang["Log_ConfigReadError"], ex));
                     keyCode = KeyCode.Home;
                 }
             }
@@ -98,7 +117,7 @@ namespace ShopMasterExtreme
                 SaveConfig();
             }
 
-            Loger.Log($"[ShopMasterExtreme] 当前控制面板热键为: {keyCode}");
+            Loger.Log(string.Format(Localization.Lang["Log_CurrentKeyInfo"], keyCode));
         }
 
         private static void SaveConfig()
@@ -110,11 +129,11 @@ namespace ShopMasterExtreme
                                  $"Loger.ShowLog={Loger.ShowLog}\n" +
                                  $"ShowAllItems={showAllItems}\n";
                 System.IO.File.WriteAllText(configPath, content);
-                Loger.Log($"[ShopMasterExtreme] 已保存 Config.ini：{keyCode}, ShowLog={Loger.ShowLog}, ShowAllItems={showAllItems}");
+                Loger.Log(string.Format(Localization.Lang["Log_ConfigWriteInfo"], keyCode, Loger.ShowLog, showAllItems));
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] 写入 Config.ini 出错: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["Log_ConfigWriteError"],ex));
             }
         }
 
@@ -126,26 +145,36 @@ namespace ShopMasterExtreme
                     return;
 
                 ModConfigAPI.Initialize();
-                Loger.Log("[ShopMasterExtreme] 检测到 ModConfig，正在注册配置项...");
+                Loger.Log(string.Format(Localization.Lang["Log_RegisterConfig"]));
 
                 ModConfigAPI.SafeAddInputWithSlider(
                     "ShopMasterExtreme",
                     "RestockAmount",
-                    "每次补货数量",
+                    "Shop Stack Amount | 商店库存数量",
                     typeof(int),
                     restockAmount,
                     new Vector2(1, 999)
                 );
 
+                ModConfigAPI.SafeAddDropdownList(
+                    "ShopMasterExtreme",
+                    "Language",
+                    "Mod Language | 插件语言设置 (Requires Restart | 需重启)",
+                    langMenuOptions,
+                    typeof(string),
+                    "Auto"
+                );
+
                 ModConfigAPI.SafeAddOnOptionsChangedDelegate(OnOptionChanged);
 
                 restockAmount = ModConfigAPI.SafeLoad("ShopMasterExtreme", "RestockAmount", 99);
-                Loger.Log($"[ShopMasterExtreme] 当前补货数量设定为 {restockAmount}");
+                Localization.ManualLanguage = ModConfigAPI.SafeLoad("ShopMasterExtreme", "Language", "Auto");
+                Loger.Log(string.Format(Localization.Lang["Log_RestockAmount"], restockAmount));
                 ModConfigReday = true;
             }
             else
             {
-                Loger.LogWarning("[ShopMasterExtreme] 未检测到 ModConfig，将使用默认值 99");
+                Loger.LogWarning(string.Format(Localization.Lang["Log_NoModConfig"]));
                 ModConfigReday = true;
             }
         }
@@ -161,7 +190,7 @@ namespace ShopMasterExtreme
                 harmonyMethodType = Type.GetType("HarmonyLib.HarmonyMethod, 0Harmony");
                 if (harmonyType == null || harmonyMethodType == null)
                 {
-                    Loger.LogError("[ShopMasterExtreme] 未找到 Harmony 类型或 HarmonyMethod 类型！");
+                    Loger.LogError(string.Format(Localization.Lang["Log_HarmonyError"]));
                     return;
                 }
 
@@ -173,7 +202,7 @@ namespace ShopMasterExtreme
 
                 if (target == null)
                 {
-                    Loger.LogError("[ShopMasterExtreme] 找不到 StockShop.DoRefreshStock");
+                    Loger.LogError(string.Format(Localization.Lang["Log_TargetNotFound"]));
                     return;
                 }
 
@@ -195,13 +224,13 @@ namespace ShopMasterExtreme
 
                 BulkPurchase.ApplyPatches(harmonyInstance, harmonyType, harmonyMethodType);
 
-                Loger.Log("[ShopMasterExtreme] 启动完成");
+                Loger.Log(string.Format(Localization.Lang["Log_StartComplete"]));
                 patched = true;
                 updateReady = true;
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] Patch 失败: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["Log_PatchError"], ex));
                 patched = false;
             }
         }
@@ -214,7 +243,7 @@ namespace ShopMasterExtreme
                 {
                     harmonyType.GetMethod("UnpatchAll", new[] { typeof(string) })
                         .Invoke(harmonyInstance, new object[] { "com.hgxy.ShopMasterExtreme" });
-                    Loger.Log("[ShopMasterExtreme] Harmony patch 已卸载");
+                    Loger.Log(string.Format(Localization.Lang["Log_UnpatchSuccess"]));
                 }
                 GameObject.Destroy(BulkPurchase.myInputField.gameObject);
                 patched = false;
@@ -222,7 +251,7 @@ namespace ShopMasterExtreme
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] 卸载 Harmony 失败: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["Log_UnpatchError"], ex)); ;
             }
         }
 
@@ -231,8 +260,26 @@ namespace ShopMasterExtreme
             if (key == $"{"ShopMasterExtreme"}_RestockAmount")
             {
                 restockAmount = ModConfigAPI.SafeLoad("ShopMasterExtreme", "RestockAmount", 99);
-                Loger.Log($"[ShopMasterExtreme] 补货数量更新为 {restockAmount}");
+                Loger.Log(string.Format(Localization.Lang["Log_RestockUpdated"], restockAmount));
                 ForceRefreshAllShops();
+            }
+            else if (key == "ShopMasterExtreme_Language")
+            {
+                string newLang = ModConfigAPI.SafeLoad("ShopMasterExtreme", "Language", "Auto");
+
+                if (newLang != Localization.ManualLanguage)
+                {
+                    Localization.ManualLanguage = newLang;
+                    Loger.Log(string.Format(Localization.Lang["Log_ChangingLanguage"], newLang));
+
+                    TryUnpatch();
+                    Localization.TryUnloadLocallization();
+
+                    Localization.TryLoadLocalization();
+                    TryPatch();
+
+                    Loger.Log(Localization.Lang["Log_StartComplete"]);
+                }
             }
         }
 
@@ -249,11 +296,11 @@ namespace ShopMasterExtreme
                     method?.Invoke(shop, null);
                     count++;
                 }
-                Loger.Log($"[ShopMasterExtreme] 已强制刷新所有商店（共 {count} 个）");
+                Loger.Log(string.Format(Localization.Lang["Log_ForceRefreshSuccess"], count));
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] 强制刷新商店失败: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["Log_ForceRefreshError"], ex));
             }
         }
 
@@ -261,12 +308,12 @@ namespace ShopMasterExtreme
         {
             if (!showUI) return;
 
-            GUI.BeginGroup(new Rect(20, 20, 280, 380), "[ShopMasterExtreme 控制面板]", GUI.skin.window);
+            GUI.BeginGroup(new Rect(20, 20, 280, 380), string.Format(Localization.Lang["Mod_ControlPanelTitle"]), GUI.skin.window);
 
-            Loger.ShowLog = GUI.Toggle(new Rect(10, 25, 230, 25), Loger.ShowLog, "启用日志输出");
-            showAllItems = GUI.Toggle(new Rect(10, 55, 230, 25), showAllItems, "显示所有商店物品（仅对部分商店有效）");
+            Loger.ShowLog = GUI.Toggle(new Rect(10, 25, 230, 25), Loger.ShowLog, string.Format(Localization.Lang["Mod_EnableLog"]));
+            showAllItems = GUI.Toggle(new Rect(10, 55, 230, 25), showAllItems, string.Format(Localization.Lang["Mod_ShowAllItems"]));
 
-            if (GUI.Button(new Rect(10, 95, 230, 30), patched ? "重新启动" : "启用补丁"))
+            if (GUI.Button(new Rect(10, 95, 230, 30), patched ? string.Format(Localization.Lang["Mod_Reboot"]) : string.Format(Localization.Lang["Mod_EnablePatch"])))
             {
                 if (patched)
                     TryUnpatch();
@@ -274,32 +321,32 @@ namespace ShopMasterExtreme
                     TryPatch();
             }
 
-            if (GUI.Button(new Rect(10, 135, 230, 30), "强制刷新所有商店"))
+            if (GUI.Button(new Rect(10, 135, 230, 30), string.Format(Localization.Lang["Mod_ForceRefresh"])))
             {
                 ForceRefreshAllShops();
             }
 
-            GUI.Label(new Rect(10, 175, 230, 25), $"当前热键: {keyCode}");
-            if (GUI.Button(new Rect(10, 205, 230, 30), "修改热键"))
+            GUI.Label(new Rect(10, 175, 230, 25), string.Format(Localization.Lang["Mod_CurrentKey"], keyCode));
+            if (GUI.Button(new Rect(10, 205, 230, 30), string.Format(Localization.Lang["Mod_ChangeKey"])))
             {
                 waitingForKey = true;
-                Loger.Log("[ShopMasterExtreme] 请按下要绑定的新键...");
+                Loger.Log(string.Format(Localization.Lang["Log_WaitKeyPrompt"]));
             }
 
             if (waitingForKey)
             {
-                GUI.Label(new Rect(10, 245, 230, 25), "请按任意键以绑定...");
+                GUI.Label(new Rect(10, 245, 230, 25), string.Format(Localization.Lang["Mod_WaitingKey"]));
                 Event e = Event.current;
                 if (e.isKey)
                 {
                     keyCode = e.keyCode;
                     waitingForKey = false;
-                    Loger.Log($"[ShopMasterExtreme] 新热键绑定为: {keyCode}");
+                    Loger.Log(string.Format(Localization.Lang["Log_NewKeyBind"], keyCode));
                     SaveConfig();
                 }
             }
 
-            if (GUI.Button(new Rect(10, 285, 230, 30), "保存配置"))
+            if (GUI.Button(new Rect(10, 285, 230, 30), string.Format(Localization.Lang["Mod_SaveConfig"])))
             {
                 SaveConfig();
             }
@@ -322,7 +369,7 @@ namespace ShopMasterExtreme
                 e.CurrentStock = amount;
             }
 
-            Loger.Log($"[ShopMasterExtreme] 商店 {__instance.MerchantID} 已补货至 {amount} 件 (显示所有物品: {showAllItems})");
+            Loger.Log(string.Format(Localization.Lang["Log_ShopRestocked"], __instance.MerchantID, amount, showAllItems));
         }
     }
 }

@@ -43,11 +43,11 @@ namespace ShopMasterExtreme
                 patchMethod.Invoke(harmonyInstance, new object[] { targetShow, prefixShowHM, null, null, null });
                 patchMethod.Invoke(harmonyInstance, new object[] { targetSelection, null, postfixSelectionHM, null, null });
 
-                Loger.Log("[ShopMasterExtreme] 批量购买模块已成功挂载！");
+                Loger.Log(string.Format(Localization.Lang["BulkPurchase1"]));
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] 批量购买模块挂载失败: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["BulkPurchase2"], ex));
             }
         }
         public static void BeforeSetupAndShow(StockShop stockShop)
@@ -112,13 +112,6 @@ namespace ShopMasterExtreme
                     myInputField.onValueChanged.RemoveAllListeners();
                     myInputField.onEndEdit.RemoveAllListeners();
 
-                    RectTransform rect = myInputField.GetComponent<RectTransform>();
-                    rect.anchorMin = new Vector2(0, 0.5f);
-                    rect.anchorMax = new Vector2(0, 0.5f);
-                    rect.pivot = new Vector2(0, 0.5f);
-                    rect.anchoredPosition = new Vector2(40, 0);
-                    rect.sizeDelta = new Vector2(60, 40);
-
                     myInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
                 }
 
@@ -143,7 +136,7 @@ namespace ShopMasterExtreme
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] UI组装或事件绑定失败: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["BulkPurchase3"], ex));
             }
         }
 
@@ -173,15 +166,15 @@ namespace ShopMasterExtreme
 
                 if (currentSelectionEntry.CurrentStock < currentInputValue)
                 {
-                    NotificationText.Push("库存不足");
-                    Loger.Log($"库存不足，购买失败");
+                    NotificationText.Push(string.Format(Localization.Lang["BulkPurchaseNotification1"]));
+                    Loger.Log(string.Format(Localization.Lang["BulkPurchase4"]));
                     return;
                 }
 
                 if (!EconomyManager.IsEnough(totalCost, activeShop.AccountAvaliable, true))
                 {
-                    NotificationText.Push("金钱不足");
-                    Loger.Log($"金钱不足，购买失败");
+                    NotificationText.Push(string.Format(Localization.Lang["BulkPurchaseNotification2"]));
+                    Loger.Log(string.Format(Localization.Lang["BulkPurchase5"]));
                     return;
                 }
 
@@ -204,8 +197,8 @@ namespace ShopMasterExtreme
 
                 if (lastItem != null)
                 {
-                    NotificationText.Push($"成功购买了 {currentInputValue} 个 {lastItem.DisplayName} ");
-                    Loger.Log($"购买 {currentInputValue} 个 {lastItem.DisplayName} ");
+                    NotificationText.Push(string.Format(Localization.Lang["BulkPurchaseNotification3"], currentInputValue, lastItem.DisplayName));
+                    Loger.Log(string.Format(Localization.Lang["BulkPurchase6"], currentInputValue, lastItem.DisplayName));
                     AudioManager.Post("UI/buy");
                 }
 
@@ -221,7 +214,7 @@ namespace ShopMasterExtreme
             }
             catch (Exception ex)
             {
-                Loger.LogError($"[ShopMasterExtreme] 批量购买出错: {ex}");
+                Loger.LogError(string.Format(Localization.Lang["BulkPurchase7"]));
             }
             finally
             {

@@ -13,64 +13,65 @@ namespace ShopMasterExtreme
 
         internal static void TryLoadLocalization()
         {
-            if (LocalizationLoaded)
-                return;
-
-            if (ManualLanguage != "Auto")
+            while (!LocalizationLoaded)
             {
-                LoadSpecificLanguage(ManualLanguage);
-                LocalizationLoaded = true;
-                return;
-            }
-
-            try
-            {
-                switch (Application.systemLanguage)
+                if (ManualLanguage != "Auto")
                 {
-                    case SystemLanguage.ChineseSimplified:
-                    case SystemLanguage.ChineseTraditional:
-                    case SystemLanguage.Chinese:
-                        LoadChinese();
-                        break;
-
-                    case SystemLanguage.Japanese:
-                        LoadJapanese();
-                        break;
-
-                    case SystemLanguage.Korean:
-                        LoadKorean();
-                        break;
-
-                    case SystemLanguage.German:
-                        LoadGerman();
-                        break;
-
-                    case SystemLanguage.French:
-                        LoadFrench();
-                        break;
-
-                    case SystemLanguage.Russian:
-                        LoadRussian();
-                        break;
-
-                    case SystemLanguage.Spanish:
-                        LoadSpanish();
-                        break;
-
-                    case SystemLanguage.Portuguese:
-                        LoadPortuguese();
-                        break;
-
-                    default:
-                        LoadEnglish();
-                        break;
+                    LoadSpecificLanguage(ManualLanguage);
+                    LocalizationLoaded = true;
+                    return;
                 }
-                LocalizationLoaded = true;
-            }
-            catch (Exception ex)
-            {
-                Loger.LogWarning($"[ShopMasterExtreme] Language init error: {ex.Message}");
-                LocalizationLoaded = true;
+
+                try
+                {
+                    switch (Application.systemLanguage)
+                    {
+                        case SystemLanguage.ChineseSimplified:
+                        case SystemLanguage.ChineseTraditional:
+                        case SystemLanguage.Chinese:
+                            LoadChinese();
+                            break;
+
+                        case SystemLanguage.Japanese:
+                            LoadJapanese();
+                            break;
+
+                        case SystemLanguage.Korean:
+                            LoadKorean();
+                            break;
+
+                        case SystemLanguage.German:
+                            LoadGerman();
+                            break;
+
+                        case SystemLanguage.French:
+                            LoadFrench();
+                            break;
+
+                        case SystemLanguage.Russian:
+                            LoadRussian();
+                            break;
+
+                        case SystemLanguage.Spanish:
+                            LoadSpanish();
+                            break;
+
+                        case SystemLanguage.Portuguese:
+                            LoadPortuguese();
+                            break;
+
+                        default:
+                            LoadEnglish();
+                            break;
+                    }
+                    LocalizationLoaded = true;
+                }
+                catch (Exception ex)
+                {
+                    Loger.LogWarning($"[ShopMasterExtreme] Language init error: {ex.Message}");
+                    TryUnloadLocallization();
+                    break;
+                }
             }
         }
         private static void LoadEnglish()

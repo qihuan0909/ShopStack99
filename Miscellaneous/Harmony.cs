@@ -16,7 +16,7 @@ namespace ShopMasterExtreme.Miscellaneous
 
         internal static void TryPatch()
         {
-            while (patched == false)
+            while (!patched)
             {
                 try
                 {

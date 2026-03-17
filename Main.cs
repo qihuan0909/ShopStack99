@@ -22,11 +22,9 @@ namespace ShopMasterExtreme
         private void OnDisable()
         {
             ModConfig.SaveModConfig();
+            ModConfig.UnloadModConfig();
             Miscellaneous.Harmony.TryUnpatch();
             Localization.TryUnloadLocallization();
-
-            ModConfig.ModConfigReday = false;
-            Miscellaneous.Harmony.patched = false;
             Miscellaneous.GUI.showUI = false;
         }
 

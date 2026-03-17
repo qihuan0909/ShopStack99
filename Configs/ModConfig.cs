@@ -27,7 +27,7 @@ namespace ShopMasterExtreme.Configs
         {
             if (ModConfigAPI.IsAvailable())
             {
-                while (ModConfigReday == false)
+                while (!ModConfigReday)
                 {
                     try
                     {
@@ -62,6 +62,7 @@ namespace ShopMasterExtreme.Configs
                     catch (Exception ex)
                     {
                         Loger.LogError(string.Format(Localization.Lang["Log_ModConfigLoadError"], ex));
+                        ModConfigReday = false;
                         break;
                     }
                 }
@@ -105,11 +106,19 @@ namespace ShopMasterExtreme.Configs
         {
             if (ModConfigAPI.IsAvailable())
             {
+                ModConfigAPI.SafeSave("ShopMasterExtreme", "RestockAmount", ShopStackManager.restockAmount);
+                Loger.Log(string.Format(Localization.Lang["Log_ConfigSaved"], ShopStackManager.restockAmount));
+            }
+        }
+
+        internal static void UnloadModConfig()
+        {
+            if (ModConfigAPI.IsAvailable())
+            {
                 ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(OnOptionChanged);
                 Loger.Log(Localization.Lang["Log_ConfigRemoved"]);
 
-                ModConfigAPI.SafeSave("ShopMasterExtreme", "RestockAmount", ShopStackManager.restockAmount);
-                Loger.Log(string.Format(Localization.Lang["Log_ConfigSaved"], ShopStackManager.restockAmount));
+                ModConfigReday = false;
             }
         }
     }

@@ -10,6 +10,7 @@ namespace ShopMasterExtreme
         internal static string ManualLanguage = "Auto";
         internal static bool LocalizationLoaded = false;
         internal static Dictionary<string, string> Lang = new Dictionary<string, string>();
+
         internal static void TryLoadLocalization()
         {
             if (LocalizationLoaded)

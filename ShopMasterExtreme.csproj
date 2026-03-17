@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <RootNamespace>ShopStack99</RootNamespace>
+    <RootNamespace>ShopMasterExtreme</RootNamespace>
     <Nullable>enable</Nullable>
     <DuckovPath>E:\SteamLibrary\steamapps\common\Escape from Duckov</DuckovPath>
   </PropertyGroup>

@@ -10,8 +10,9 @@ using ItemStatsSystem;
 using Duckov.UI;
 using Duckov.Utilities;
 using Duckov;
+using ShopMasterExtreme;
 
-namespace ShopMasterExtreme
+namespace ShopMasterExtreme.Functions
 {
     public static class BulkPurchase
     {
@@ -116,7 +117,8 @@ namespace ShopMasterExtreme
                 }
 
                 myInputField.onValueChanged.RemoveAllListeners();
-                myInputField.onValueChanged.AddListener((val) => {
+                myInputField.onValueChanged.AddListener((val) =>
+                {
                     if (int.TryParse(val, out int num))
                     {
                         if (num < 1) num = 1;
